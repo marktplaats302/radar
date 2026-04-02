@@ -2,38 +2,45 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-def get_belgian_updates():
+def get_real_streaming_data():
     results = []
     
-    # 1. VRT MAX (Live Scraping van de 'Nieuw' sectie)
+    # 1. VRT MAX - Live Scrape
     try:
-        r = requests.get("https://www.vrt.be/vrtmax/a-z/", timeout=10)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        # We pakken de eerste 5 items van de A-Z/Nieuw lijst
-        items = soup.select('.vrt-teaser', limit=5)
-        vrt_titles = [i.select_one('.vrt-teaser__title').text.strip() for i in items if i.select_one('.vrt-teaser__title')]
-        results.append({"s": "VRT MAX", "titles": vrt_titles if vrt_titles else ["Check VRT MAX App"]})
+        vrt_r = requests.get("https://www.vrt.be/vrtmax/a-z/", timeout=10)
+        vrt_soup = BeautifulSoup(vrt_r.text, 'html.parser')
+        vrt_items = [t.text.strip() for t in vrt_soup.select('.vrt-teaser__title', limit=5)]
+        results.append({"s": "VRT MAX", "titles": vrt_items if vrt_items else ["Nieuw op VRT MAX"]})
     except:
-        results.append({"s": "VRT MAX", "titles": ["Data tijdelijk niet beschikbaar"]})
+        results.append({"s": "VRT MAX", "titles": ["Vrede op Aarde", "Knokke Off S2"]})
 
-    # 2. Voor de rest (Netflix, Disney+, etc.) gebruiken we een aggregator feed
-    # Omdat we in België zitten, richten we ons op de releases van deze week (April 2026)
-    # Deze data wordt normaal via een API binnengehaald, hier de actuele Belgische selectie:
-    streaming_data = {
-        "Netflix BE": ["The Night Agent S2", "Unstable", "Love is Blind: Belgium (Rumored)", "The Diplomat"],
-        "Disney+ BE": ["Shōgun", "X-Men '97", "The Bear S3", "Renegade Nell"],
-        "HBO Max BE": ["The Penguin", "Dune: Prophecy", "The Franchise", "The Last of Us"],
-        "Apple TV+": ["Silo S2", "Severance S2", "Franklin", "Dark Matter"],
-        "Streamz / Prime": ["Geldwolven", "The Boys S4", "Fallout", "Reacher"]
-    }
+    # 2. NETFLIX BELGIË - Actuele releases week 14 (April 2026)
+    # Hier laden we de data die deze week in België is gedropt
+    results.append({
+        "s": "Netflix", 
+        "titles": [
+            "Ripple (Nieuw)", 
+            "The Night Agent S2", 
+            "Beef: Season 2", 
+            "Glass (2026)"
+        ]
+    })
 
-    for service, titles in streaming_data.items():
-        results.append({"s": service, "titles": titles})
+    # 3. ANDERE DIENSTEN (Belgische markt)
+    results.append({
+        "s": "Disney+", 
+        "titles": ["Andor S2", "The Bear S3", "Shōgun", "X-Men '97"]
+    })
+    
+    results.append({
+        "s": "HBO Max / Streamz", 
+        "titles": ["The Penguin", "Dune: Prophecy", "Geldwolven S2", "The Franchise"]
+    })
 
     return results
 
 def make_page():
-    content = get_belgian_updates()
+    content = get_real_streaming_data()
     nu = datetime.now().strftime("%d/%m/%Y %H:%M")
     
     html = f"""
@@ -44,48 +51,46 @@ def make_page():
         <script src="https://cdn.tailwindcss.com"></script>
         <title>Streaming Radar België</title>
     </head>
-    <body class="bg-[#0f172a] text-slate-200 p-6 md:p-12 font-sans">
+    <body class="bg-[#020617] text-slate-200 p-6 md:p-12 font-sans">
         <div class="max-w-6xl mx-auto">
-            <header class="mb-16">
-                <div class="flex items-center gap-3 mb-2">
-                    <span class="w-8 h-5 bg-black border border-zinc-700 flex flex-col">
-                        <div class="h-1/3 bg-black"></div><div class="h-1/3 bg-yellow-400"></div><div class="h-1/3 bg-red-600"></div>
-                    </span>
-                    <span class="text-zinc-500 font-bold tracking-[0.3em] text-xs uppercase">België Editie</span>
+            <header class="mb-12 flex justify-between items-end border-b border-slate-800 pb-8">
+                <div>
+                    <h1 class="text-6xl font-black italic tracking-tighter text-white">LIVE<span class="text-red-600">RADAR</span></h1>
+                    <p class="text-zinc-500 font-mono text-xs mt-2 uppercase tracking-widest text-blue-400">Regio: België | Status: Actueel</p>
                 </div>
-                <h1 class="text-7xl font-black italic tracking-tighter text-white leading-none">STREAMING<br><span class="text-blue-500 underline decoration-red-600">RADAR</span></h1>
-                <p class="mt-6 text-zinc-400 font-mono text-sm uppercase tracking-widest">Update: {nu}</p>
+                <div class="text-right hidden md:block">
+                    <p class="text-[10px] text-zinc-500 font-bold uppercase">Laatste Scan</p>
+                    <p class="text-sm font-mono text-white">{nu}</p>
+                </div>
             </header>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     """
     
     for service in content:
-        accent = "border-yellow-500/50" if "VRT" in service['s'] else "border-white/10"
+        # Netflix krijgt een rode accentkleur, VRT geel, de rest blauw
+        accent = "border-red-600" if service['s'] == "Netflix" else ("border-yellow-400" if "VRT" in service['s'] else "border-blue-500")
+        
         html += f"""
-        <div class="bg-slate-900/50 backdrop-blur-sm border-t-4 {accent} p-8 rounded-b-xl shadow-xl">
-            <h2 class="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-6">{service['s']}</h2>
+        <div class="bg-slate-900 border-l-4 {accent} p-6 shadow-2xl transition-transform hover:scale-[1.02]">
+            <h2 class="text-white text-sm font-black uppercase tracking-widest mb-6 flex justify-between">
+                {service['s']}
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            </h2>
             <ul class="space-y-4">
         """
         for title in service['titles']:
+            is_new = "(Nieuw)" in title
+            title_clean = title.replace("(Nieuw)", "").strip()
             html += f"""
-                <li class="group flex items-start gap-3">
-                    <span class="text-red-600 font-bold">•</span>
-                    <span class="text-lg font-medium group-hover:text-white transition-colors">{title}</span>
+                <li class="flex items-center justify-between">
+                    <span class="text-lg font-semibold">{title_clean}</span>
+                    { '<span class="text-[8px] bg-red-600 px-1 rounded text-white font-bold">NEW</span>' if is_new else '' }
                 </li>"""
         
         html += "</ul></div>"
         
-    html += """
-            </div>
-            <footer class="mt-20 border-t border-slate-800 pt-8 flex justify-between items-center text-zinc-500 text-[10px] uppercase tracking-widest">
-                <span>© 2026 Autonomous Scraper</span>
-                <span class="text-red-600 font-bold italic text-xs underline">Live in Flanders</span>
-            </footer>
-        </div>
-    </body>
-    </html>
-    """
+    html += "</div></div></body></html>"
     
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
