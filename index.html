@@ -3,81 +3,98 @@
     <html lang="nl">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://cdn.tailwindcss.com"></script>
         <title>Streaming Radar BE</title>
+        <style>
+            body { background-color: #020617; }
+            .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); }
+        </style>
     </head>
-    <body class="bg-[#020617] text-slate-300 p-6 md:p-12 font-sans">
+    <body class="text-slate-200 p-4 md:p-12 font-sans">
         <div class="max-w-5xl mx-auto">
-            <header class="mb-12 border-b border-slate-800 pb-8 flex justify-between items-end">
-                <div>
-                    <h1 class="text-6xl font-black italic text-white tracking-tighter">BE <span class="text-red-600 underline">RADAR</span></h1>
-                    <p class="text-zinc-500 font-mono text-[10px] mt-2 uppercase tracking-[0.3em]">Weekoverzicht April 2026 • Scan: 02/04/2026 13:40</p>
-                </div>
+            <header class="mb-12 border-b border-slate-800 pb-8">
+                <h1 class="text-5xl md:text-7xl font-black italic text-white tracking-tighter">
+                    BE <span class="text-red-600 underline">RADAR</span>
+                </h1>
+                <p class="text-zinc-500 font-mono text-[10px] mt-4 uppercase tracking-[0.3em]">
+                    Weekoverzicht April 2026 • Laatste Update: 02/04/2026 13:46
+                </p>
             </header>
+
+            <div class="space-y-10">
     
-        <div class="mb-10 bg-slate-900/40 border border-slate-800 p-8 rounded-3xl backdrop-blur-md shadow-2xl">
-            <h2 class="text-4xl font-black mb-8 text-red-600 italic uppercase tracking-tighter">Netflix</h2>
-            <div class="grid md:grid-cols-2 gap-12">
+        <section class="glass border border-red-600/30 p-8 rounded-[2rem] shadow-2xl">
+            <h2 class="text-4xl font-black mb-8 text-red-600 italic uppercase tracking-tight">Netflix</h2>
+            <div class="grid md:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Nieuwe Series
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Series
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• Zero Day (Nieuw)</li><li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• Together: Treble Winners</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Zero Day (Nieuw)</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Together: Treble Winners</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>The Night Agent S2 (Trailer)</li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Nieuwe Films
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Films
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• Ripple</li><li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• The Beautiful Game</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>Ripple</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>The Beautiful Game</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>Glass (2026)</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div class="mb-10 bg-slate-900/40 border border-slate-800 p-8 rounded-3xl backdrop-blur-md shadow-2xl">
-            <h2 class="text-4xl font-black mb-8 text-blue-500 italic uppercase tracking-tighter">Disney+</h2>
-            <div class="grid md:grid-cols-2 gap-12">
+        <section class="glass border border-blue-500/30 p-8 rounded-[2rem] shadow-2xl">
+            <h2 class="text-4xl font-black mb-8 text-blue-500 italic uppercase tracking-tight">Disney+</h2>
+            <div class="grid md:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Nieuwe Series
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Series
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• The Bear: Season 4</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>The Bear: Season 4</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Andor: Season 2</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Shogun</li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Nieuwe Films
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Films
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-white font-bold text-xl border-b border-white/5 pb-2'>• Mufasa: The Lion King</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>Mufasa: The Lion King</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>The Marvels (Update)</li>
                     </ul>
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div class="mb-10 bg-slate-900/40 border border-slate-800 p-8 rounded-3xl backdrop-blur-md shadow-2xl">
-            <h2 class="text-4xl font-black mb-8 text-yellow-400 italic uppercase tracking-tighter">VRT MAX</h2>
-            <div class="grid md:grid-cols-2 gap-12">
+        <section class="glass border border-yellow-400/30 p-8 rounded-[2rem] shadow-2xl">
+            <h2 class="text-4xl font-black mb-8 text-yellow-400 italic uppercase tracking-tight">VRT MAX</h2>
+            <div class="grid md:grid-cols-2 gap-10">
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Nieuwe Series
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span> Series
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-zinc-600 italic'>Geen nieuwe series deze week</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>De Twaalf: Seizoen 3</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Knokke Off (Nieuw)</li><li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-blue-500 transition-all'>Thuis: Weekoverzicht</li>
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Nieuwe Films
+                    <h3 class="text-zinc-500 text-[11px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span> Films
                     </h3>
                     <ul class="space-y-4">
-                        <li class='text-zinc-600 italic'>Geen nieuwe films deze week</li>
+                        <li class='text-white font-bold text-xl border-l-2 border-white/10 pl-4 hover:border-red-600 transition-all'>Pano: De Nieuwe Wereld</li>
                     </ul>
                 </div>
             </div>
+        </section>
+        
+            </div>
+            <footer class="mt-20 text-center text-zinc-700 text-[10px] uppercase tracking-[0.5em]">
+                End of Transmission • Autonomous Radar v3.0
+            </footer>
         </div>
-        </div></body></html>
+    </body>
+    </html>
+    
