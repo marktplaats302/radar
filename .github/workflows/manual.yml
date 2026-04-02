@@ -1,19 +1,36 @@
 name: Update Radar
+
 on:
   schedule:
-    - cron: '0 7 * * *'
-  workflow_dispatch:
+    - cron: '0 7 * * *' # Elke ochtend om 07:00 UTC
+  workflow_dispatch: # Knop om handmatig te starten
+
+# CRUCIAAL: Dit geeft de robot toestemming om index.html te schrijven
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - run: pip install requests
-      - run: python scraper.py
-      - run: |
-          git config user.name 'Bot'
-          git config user.email 'bot@bot.com'
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run Scraper
+        run: python scraper.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name 'StreamingBot'
+          git config --global user.email 'bot@github.com'
           git add index.html
-          git commit -m "update" || exit 0
+          git commit -m "Daily update" || exit 0
           git push
