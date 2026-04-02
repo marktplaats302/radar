@@ -2,45 +2,43 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-def get_real_streaming_data():
+def get_live_data():
+    services = {
+        "Netflix": "https://www.flixwatch.co/regions/belgium/feed/",
+        "Disney+": "https://www.flixwatch.co/streaming-services/disney-plus/feed/",
+        "VRT MAX": "https://www.vrt.be/vrtmax/a-z/"
+    }
+    
     results = []
-    
-    # 1. VRT MAX - Live Scrape
-    try:
-        vrt_r = requests.get("https://www.vrt.be/vrtmax/a-z/", timeout=10)
-        vrt_soup = BeautifulSoup(vrt_r.text, 'html.parser')
-        vrt_items = [t.text.strip() for t in vrt_soup.select('.vrt-teaser__title', limit=5)]
-        results.append({"s": "VRT MAX", "titles": vrt_items if vrt_items else ["Nieuw op VRT MAX"]})
-    except:
-        results.append({"s": "VRT MAX", "titles": ["Vrede op Aarde", "Knokke Off S2"]})
 
-    # 2. NETFLIX BELGIË - Actuele releases week 14 (April 2026)
-    # Hier laden we de data die deze week in België is gedropt
-    results.append({
-        "s": "Netflix", 
-        "titles": [
-            "Ripple (Nieuw)", 
-            "The Night Agent S2", 
-            "Beef: Season 2", 
-            "Glass (2026)"
-        ]
-    })
+    for name, url in services.items():
+        titles = []
+        try:
+            # Voor VRT MAX gebruiken we de directe scraper die we al hadden
+            if name == "VRT MAX":
+                r = requests.get(url, timeout=10)
+                soup = BeautifulSoup(r.text, 'html.parser')
+                items = soup.select('.vrt-teaser__title', limit=5)
+                titles = [i.text.strip() for i in items]
+            
+            # Voor Netflix/Disney gebruiken we hun RSS feeds (veel betrouwbaarder)
+            else:
+                r = requests.get(url, timeout=10)
+                soup = BeautifulSoup(r.content, features="xml")
+                items = soup.find_all('item', limit=5)
+                titles = [item.title.text.replace("New on Netflix:", "").strip() for item in items]
+                
+        except Exception as e:
+            print(f"Fout bij {name}: {e}")
+            # Fallback titels als de site offline is
+            titles = ["Nieuwe releases checken...", "Update volgt"]
 
-    # 3. ANDERE DIENSTEN (Belgische markt)
-    results.append({
-        "s": "Disney+", 
-        "titles": ["Andor S2", "The Bear S3", "Shōgun", "X-Men '97"]
-    })
-    
-    results.append({
-        "s": "HBO Max / Streamz", 
-        "titles": ["The Penguin", "Dune: Prophecy", "Geldwolven S2", "The Franchise"]
-    })
+        results.append({"s": name, "titles": titles})
 
     return results
 
 def make_page():
-    content = get_real_streaming_data()
+    content = get_live_data()
     nu = datetime.now().strftime("%d/%m/%Y %H:%M")
     
     html = f"""
@@ -49,45 +47,29 @@ def make_page():
     <head>
         <meta charset="UTF-8">
         <script src="https://cdn.tailwindcss.com"></script>
-        <title>Streaming Radar België</title>
+        <title>Streaming Radar BE</title>
     </head>
-    <body class="bg-[#020617] text-slate-200 p-6 md:p-12 font-sans">
-        <div class="max-w-6xl mx-auto">
-            <header class="mb-12 flex justify-between items-end border-b border-slate-800 pb-8">
-                <div>
-                    <h1 class="text-6xl font-black italic tracking-tighter text-white">LIVE<span class="text-red-600">RADAR</span></h1>
-                    <p class="text-zinc-500 font-mono text-xs mt-2 uppercase tracking-widest text-blue-400">Regio: België | Status: Actueel</p>
-                </div>
-                <div class="text-right hidden md:block">
-                    <p class="text-[10px] text-zinc-500 font-bold uppercase">Laatste Scan</p>
-                    <p class="text-sm font-mono text-white">{nu}</p>
-                </div>
+    <body class="bg-[#050505] text-white p-6 font-sans">
+        <div class="max-w-4xl mx-auto">
+            <header class="mb-10 border-b border-zinc-800 pb-6">
+                <h1 class="text-4xl font-black italic">BELGIË <span class="text-red-600">RADAR</span></h1>
+                <p class="text-zinc-500 font-mono text-[10px] mt-2 uppercase tracking-[0.3em]">Live Feed • {nu}</p>
             </header>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid gap-6">
     """
     
     for service in content:
-        # Netflix krijgt een rode accentkleur, VRT geel, de rest blauw
-        accent = "border-red-600" if service['s'] == "Netflix" else ("border-yellow-400" if "VRT" in service['s'] else "border-blue-500")
+        color = "border-red-600" if service['s'] == "Netflix" else "border-blue-600"
+        if service['s'] == "VRT MAX": color = "border-yellow-400"
         
         html += f"""
-        <div class="bg-slate-900 border-l-4 {accent} p-6 shadow-2xl transition-transform hover:scale-[1.02]">
-            <h2 class="text-white text-sm font-black uppercase tracking-widest mb-6 flex justify-between">
-                {service['s']}
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            </h2>
-            <ul class="space-y-4">
-        """
-        for title in service['titles']:
-            is_new = "(Nieuw)" in title
-            title_clean = title.replace("(Nieuw)", "").strip()
-            html += f"""
-                <li class="flex items-center justify-between">
-                    <span class="text-lg font-semibold">{title_clean}</span>
-                    { '<span class="text-[8px] bg-red-600 px-1 rounded text-white font-bold">NEW</span>' if is_new else '' }
-                </li>"""
+        <div class="bg-zinc-900/50 border-l-4 {color} p-6 rounded-r-xl">
+            <h2 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4">{service['s']}</h2>
+            <ul class="space-y-2">"""
         
+        for t in service['titles']:
+            html += f"<li class='text-lg font-bold'>• {t}</li>"
+            
         html += "</ul></div>"
         
     html += "</div></div></body></html>"
