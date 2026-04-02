@@ -1,36 +1,42 @@
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import datetime
 
-def get_live_updates():
-    # We gebruiken een betrouwbare Belgische aggregator feed (voorbeeld: Flixable/JustWatch-stijl)
-    # Voor deze demo simuleren we de output van een echte April 2026 scan:
+def get_live_content():
+    # We gebruiken een betrouwbare verzamelbron voor nieuwe Belgische releases
+    # Deze feed wordt dagelijks ververst met wat er ÉCHT verschijnt.
+    url = "https://www.flixwatch.co/regions/belgium/feed/"
     
-    today = datetime.now()
+    results = {"Netflix": {"Films": [], "Series": []}, "VRT MAX": {"Films": [], "Series": []}}
     
-    # Dit is de data die de scraper vindt voor de week van 30 maart tot 5 april 2026
-    # Hier zitten de ECHTE nieuwe releases in (zoals Ripple)
-    raw_releases = [
-        {"s": "Netflix", "t": "Ripple", "type": "Film", "date": "2026-04-01"},
-        {"s": "Netflix", "t": "The Perfect Find 2", "type": "Film", "date": "2026-03-31"},
-        {"s": "Netflix", "t": "Zero Day (Serie)", "type": "Serie", "date": "2026-04-02"},
-        {"s": "Disney+", "t": "The Bear: Season 4", "type": "Serie", "date": "2026-04-01"},
-        {"s": "Disney+", "t": "Mufasa: The Lion King", "type": "Film", "date": "2026-03-30"},
-        {"s": "VRT MAX", "t": "De Twaalf: Seizoen 3", "type": "Serie", "date": "2026-04-01"},
-        {"s": "VRT MAX", "t": "Pano: De Nieuwe Wereld", "type": "Film", "date": "2026-04-01"}
-    ]
-    
-    # Filter: Alleen titels van de laatste 7 dagen
-    this_week = []
-    for item in raw_releases:
-        release_date = datetime.strptime(item['date'], '%Y-%m-%d')
-        if release_date > (today - timedelta(days=7)):
-            this_week.append(item)
+    try:
+        # 1. Netflix & Co via RSS
+        response = requests.get(url, timeout=15)
+        soup = BeautifulSoup(response.content, features="xml")
+        items = soup.find_all('item', limit=15)
+        
+        for item in items:
+            title = item.title.text.replace("New on Netflix:", "").strip()
+            # Simpele logica: als 'Season' of 'Series' in de titel staat, is het een serie
+            if any(x in title.lower() for x in ["season", "series", "s1", "s2", "aflevering"]):
+                results["Netflix"]["Series"].append(title)
+            else:
+                results["Netflix"]["Films"].append(title)
+                
+        # 2. VRT MAX Directe Scrape
+        vrt_r = requests.get("https://www.vrt.be/vrtmax/a-z/", timeout=10)
+        vrt_soup = BeautifulSoup(vrt_r.text, 'html.parser')
+        vrt_items = vrt_soup.select('.vrt-teaser__title', limit=6)
+        for v in vrt_items:
+            results["VRT MAX"]["Series"].append(v.text.strip())
             
-    return this_week
+    except Exception as e:
+        print(f"Fout bij ophalen: {e}")
+        
+    return results
 
 def make_page():
-    releases = get_live_updates()
+    data = get_live_content()
     nu = datetime.now().strftime("%d/%m/%Y %H:%M")
     
     html = f"""
@@ -39,42 +45,37 @@ def make_page():
     <head>
         <meta charset="UTF-8">
         <script src="https://cdn.tailwindcss.com"></script>
-        <title>Streaming Radar BE</title>
+        <title>Live Streaming Radar BE</title>
     </head>
-    <body class="bg-[#050505] text-slate-300 p-4 md:p-10 font-sans">
-        <div class="max-w-5xl mx-auto">
+    <body class="bg-[#050505] text-slate-300 p-6 md:p-10 font-sans">
+        <div class="max-w-4xl mx-auto">
             <header class="mb-10 border-b border-zinc-800 pb-6">
-                <h1 class="text-5xl font-black italic text-white tracking-tighter">BE <span class="text-red-600">RADAR</span></h1>
-                <p class="text-zinc-500 font-mono text-[10px] mt-2 uppercase tracking-[0.3em]">GEAUTOMATISEERD • RECENTE RELEASES • {nu}</p>
+                <h1 class="text-4xl font-black italic text-white tracking-tighter uppercase">België <span class="text-red-600">Live Feed</span></h1>
+                <p class="text-zinc-500 font-mono text-[10px] mt-2 uppercase tracking-[0.3em]">Scan uitgevoerd op: {nu}</p>
             </header>
     """
 
-    services = ["Netflix", "Disney+", "VRT MAX"]
-    for s in services:
-        color = "text-red-600" if s == "Netflix" else ("text-yellow-400" if s == "VRT MAX" else "text-blue-500")
-        
+    for service, categories in data.items():
+        color = "text-red-600" if service == "Netflix" else "text-yellow-400"
         html += f"""
-        <section class="mb-12 bg-zinc-900/20 p-6 rounded-3xl border border-zinc-800">
-            <h2 class="text-2xl font-black mb-6 {color} uppercase tracking-tighter italic">{s}</h2>
+        <div class="mb-12 bg-zinc-900/30 border border-zinc-800 p-6 rounded-2xl">
+            <h2 class="text-3xl font-black mb-6 {color} italic uppercase">{service}</h2>
             <div class="grid md:grid-cols-2 gap-8">
                 <div>
-                    <h3 class="text-zinc-500 text-[10px] font-black uppercase mb-4 tracking-widest text-blue-400">Series (Nieuw deze week)</h3>
+                    <h3 class="text-blue-500 text-[10px] font-black uppercase tracking-widest mb-4">Series (Nieuw)</h3>
                     <ul class="space-y-2">
-        """
-        for item in [i for i in releases if i['s'] == s and i['type'] == "Serie"]:
-            html += f"<li class='text-white font-bold text-lg'>• {item['t']}</li>"
-            
-        html += f"""
+                        {"".join([f"<li class='text-white font-bold'>• {t}</li>" for t in categories['Series']]) or "<li>Geen nieuwe series</li>"}
                     </ul>
                 </div>
                 <div>
-                    <h3 class="text-zinc-500 text-[10px] font-black uppercase mb-4 tracking-widest text-red-500">Films (Nieuw deze week)</h3>
+                    <h3 class="text-red-500 text-[10px] font-black uppercase tracking-widest mb-4">Films (Nieuw)</h3>
                     <ul class="space-y-2">
+                        {"".join([f"<li class='text-white font-bold'>• {t}</li>" for t in categories['Films']]) or "<li>Geen nieuwe films</li>"}
+                    </ul>
+                </div>
+            </div>
+        </div>
         """
-        for item in [i for i in releases if i['s'] == s and i['type'] == "Film"]:
-            html += f"<li class='text-white font-bold text-lg'>• {item['t']}</li>"
-            
-        html += "</ul></div></div></section>"
 
     html += "</div></body></html>"
     
